@@ -1,0 +1,26 @@
+{
+  "name": "graphql-handson",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Showichiro",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "1.8.1",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.2",
+    "tsx": "^4.15.5",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.10.4",
+    "apollo-server-express": "^3.13.0",
+    "express": "^4.19.2",
+    "graphql": "^16.8.2"
+  },
+  "packageManager": "pnpm@9.3.0+sha256.e1f9e8d1a16607a46dd3c158b5f7a7dc7945501d1c6222d454d63d033d1d918f"
+}
