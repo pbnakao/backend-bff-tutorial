@@ -200,7 +200,7 @@ export const typeDefs = gql`
 }
 ```
 
-![Error Response](image.png)
+![Error Response](./docs/image6.png)
 
 GraphQLのSchemaは絶対であり、クライアントのリクエストは必ず「Schema通りか」というバリデーションを課されるということです。
 
