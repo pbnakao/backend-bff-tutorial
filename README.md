@@ -34,7 +34,7 @@ git clone https://github.com/Showichiro/graphql-handson.git
 続いて所定のバージョンのNodeJSをインストールします。
 
 ```sh
-# .nvmrcでバージョン指定しているのでnvmを利用している場合はこのコマンドでOK
+# .nvmrcでバージョン指定しているのでnvmを利用している場合は「リポジトリルートで」このコマンドを打鍵する
 nvm use # nvm使っていない場合は、各自で21系を利用するように設定してください。
 ```
 
