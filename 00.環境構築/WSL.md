@@ -19,18 +19,4 @@ https://apps.microsoft.com/detail/9nz3klhxdjp5?hl=ja-jp&gl=JP
 インストール後、アプリを起動して初期設定情報を入力(Unixユーザ名・パスワードなど。任意のもので可）。
 
 
-# 3. VSCodeのインストール
-
-以下のページからダウンロードし、インストーラーを実行。すでにVSCodeをインストール済みの場合はスキップ。
-https://azure.microsoft.com/ja-jp/products/visual-studio-code
-
-WSLでVSCodeを利用するため、以下の拡張機能をインストールします（Installを押下するとVSCodeを開くはず）。
-
-https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl
-
-補足：
-WSLのUbuntuターミナル上で `code <path>`とコマンドを打つことでそのディレクトリをVSCodeで開くことができます。
-
-```console
-$ ~/work/java: code . # ~/work/javaディレクトリをVSCodeで開く
-```
+WSLのUbuntuターミナル上で `code <path>`を使用して、そのディレクトリをVSCodeで開けます。
