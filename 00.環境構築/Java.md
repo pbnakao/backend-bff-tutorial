@@ -20,7 +20,6 @@ curl -s "https://get.sdkman.io" | bash
 
 コンソールに実行するコマンドが出力されるはずなので実行する。
 
-
 コマンドインストール確認
 ```sh
 sdk help
