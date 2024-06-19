@@ -4,7 +4,7 @@ import { Company } from "src/graphql/company/models/company.model";
 @ObjectType()
 export class User {
     @Field(() => String)
-    id: number;
+    id: string;
     @Field(() => String)
     name: string;
     @Field(() => Company)
