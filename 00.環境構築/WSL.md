@@ -18,5 +18,4 @@ https://apps.microsoft.com/detail/9nz3klhxdjp5?hl=ja-jp&gl=JP
 
 インストール後、アプリを起動して初期設定情報を入力(Unixユーザ名・パスワードなど。任意のもので可）。
 
-
 WSLのUbuntuターミナル上で `code <path>`を使用して、そのディレクトリをVSCodeで開けます。
