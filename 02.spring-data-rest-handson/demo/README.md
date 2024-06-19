@@ -50,7 +50,7 @@
 
 起動したら、
 
-http://localhost:8080/swagger-ui
+> http://localhost:8080/swagger-ui
 
 を開きます。
 
@@ -65,20 +65,16 @@ http://localhost:8080/swagger-ui
 - ①：Controller, Service から作った従来通りの API（Customized Users）
 - ②：Spring Data REST で自動生成した API（app-user-entity-controller）
 
-① は、以下に Controller が定義されています。
-src/main/java/com/example/demo/controller/AppUserController.java
+① は、src/main/java/com/example/demo/controller/AppUserController.java に Controller が定義されています。
 
 ② は、Spring Data REST で自動生成しているため Controller が存在しません。
 あるのは Repository（src/main/java/com/example/demo/repository/AppUserRepository.java）のみです。
 
-デフォルトで生成される HTTP メソッドと、そこで呼び出されるメソッドの対応については、下記を参照。
+デフォルトで生成される HTTP メソッドと、そこで呼び出されるメソッドの対応については、公式レファレンスを参照。
 
-公式レファレンス　「サポートされている HTTP メソッド」：
-https://spring.pleiades.io/spring-data/rest/reference/repository-resources.html#repository-resources.collection-resource.supported-methods
+> 公式レファレンス：[サポートされている HTTP メソッド](https://spring.pleiades.io/spring-data/rest/reference/repository-resources.html#repository-resources.collection-resource.supported-methods)
 
-では、生成されたエンドポイントを swagger 上で叩いてみて、どのようなデータが返ってくるか試してみましょう。
-
-ちなみに DB は H2 DataBase を利用しており、初期状態では src/main/resources/data.sql 内のレコードが流し込まれます。
+では、生成されたエンドポイントを swagger 上で叩いてみて、どのようなデータが返ってくるか試してみましょう。ちなみに DB は H2 DataBase を利用しており、初期状態では src/main/resources/data.sql 内のレコードが流し込まれます。
 
 # 4. エンドポイントを増やしてみよう
 
@@ -155,7 +151,6 @@ import com.example.demo.entity.Company;
 
 public interface CompanyRepository extends JpaRepository<Company, String> {
 }
-
 ```
 
 </details>
@@ -183,7 +178,6 @@ public class AppUser {
     private Company company;
 
 }
-
 ```
 
 - Company.java
@@ -202,7 +196,6 @@ public class Company {
     @JoinColumn(name = "COMPANY_CODE", nullable = false, insertable = false, updatable = false)
     private List<AppUser> appUsers;
 }
-
 ```
 
 ちなみに、
@@ -247,7 +240,7 @@ insertable = false, updatable = false
 
 @OneToMany ではなく、@OneToMany(fetch = FetchType.LAZY)に変更します。
 
-参考：「【Java】Spring Data JPA で N+1 問題が起きないコーディングをしよう。」https://qiita.com/crml1206/items/c2174597f4a62ec5c317
+参考：[【Java】Spring Data JPA で N+1 問題が起きないコーディングをしよう。](https://qiita.com/crml1206/items/c2174597f4a62ec5c317)
 
 ```java
     @OneToMany(fetch = FetchType.LAZY)
@@ -255,6 +248,8 @@ insertable = false, updatable = false
     private List<AppUser> appUsers;
 
 ```
+
+</details>
 
 ### "\_links"ではなく、直接オブジェクトをネストさせる
 
@@ -271,7 +266,7 @@ public interface AppUserRepository extends JpaRepository<AppUser, String> {
 
 - AppUser の Projection を追加
 
-  参考：https://spring.pleiades.io/spring-data/rest/reference/projections-excerpts.html
+  参考：[射影と抜粋](https://spring.pleiades.io/spring-data/rest/reference/projections-excerpts.html)
 
 ```java
 package com.example.demo.projection;
