@@ -36,7 +36,7 @@
 
 > Spring Data REST は Spring Data のライブラリの一つであり、Spring Data REST は、Spring Data で作成したリポジトリを RESTful なエンドポイントとして自動的に公開します。Spring Data REST の機能を利用することによって、Controller や Service クラスの実装を省略する事ができるということです。
 
-出典：「Spring Data REST の要点と利用方法」https://qiita.com/umiushi_1/items/b369f659bbd94576b8f4#spring-data-rest%E3%81%A8%E3%81%AF
+出典：[Spring Data REST の要点と利用方法](https://qiita.com/umiushi_1/items/b369f659bbd94576b8f4#spring-data-rest%E3%81%A8%E3%81%AF)
 
 公式レファレンス：https://spring.pleiades.io/spring-data/rest/reference/
 
@@ -236,24 +236,10 @@ insertable = false, updatable = false
 さて、I/F とは無関係に、今なにかまずいことが起きています。なんでしょう。
 （ヒント：ログ）
 
-<details><summary>解消法</summary>
+<details><summary>答え</summary>
 
-@OneToMany ではなく、@OneToMany(fetch = FetchType.LAZY)に変更します。
-
-参考：[【Java】Spring Data JPA で N+1 問題が起きないコーディングをしよう。](https://qiita.com/crml1206/items/c2174597f4a62ec5c317)
-
-```java
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "COMPANY_CODE", nullable = false, insertable = false, updatable = false)
-    private List<AppUser> appUsers;
-
-```
-
-</details>
-
-### "\_links"ではなく、直接オブジェクトをネストさせる
-
-"\_links"に参照先のエンティティが出てくるようになったものの、/appUsers のレスポンス内に直接 company をネストさせたい場合はどうすればいいでしょうか。
+N+1 問題が発生している。
+→ JOIN FETCH するコードに修正します。
 
 - AppUserRepository に JOIN FETCH するクエリメソッドを追加
 
@@ -263,6 +249,12 @@ public interface AppUserRepository extends JpaRepository<AppUser, String> {
     List<AppUser> findAllUsersWithCompany();
 }
 ```
+
+</details>
+
+### "\_links"ではなく、直接オブジェクトをネストさせる
+
+"\_links"に参照先のエンティティが出てくるようになったものの、/appUsers のレスポンス内に直接 company をネストさせたい場合はどうすればいいでしょうか。
 
 - AppUser の Projection を追加
 
@@ -301,3 +293,154 @@ public interface AppUserRepository extends JpaRepository<AppUser, String> {
   ----------------------------（略）----------------------------
 }
 ```
+
+この状態でアプリを起動し、/users/search/findAllUsersWithCompany を叩いてみましょう。
+
+```json
+{
+  "email": "kino1@example.com",
+  "age": 48,
+  "userId": "u001",
+  "firstName": null,
+  "lastName": "木野1",
+  "company": {
+    "companyName": "会社01"
+  }
+}
+```
+
+このように、company のオブジェクトをネストさせることができました。
+改めて、N+1 問題が発生していないことを確認しましょう。
+
+# 6. エンドポイントのカスタマイズ（PK を返す設定、公開設定）
+
+## PK を返す設定を入れる
+
+Spring Data REST はデフォルトではなぜか Entity の PK を返してくれません。困るので、PK を返す設定を入れましょう。
+
+- RepositoryConfig.java
+
+/config/RepositoryConfig.java という設定が定義されているので、config.exposeIdsFor の引数に PK を返したい Entity クラスを指定します。
+
+```java
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
+import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+
+import com.example.demo.entity.AppUser;
+import com.example.demo.entity.Company;
+
+@Configuration
+public class RepositoryConfig implements RepositoryRestConfigurer {
+    @Override
+    public void configureRepositoryRestConfiguration(
+            RepositoryRestConfiguration config, CorsRegistry cors) {
+        config.exposeIdsFor(
+                AppUser.class, Company.class);
+    }
+}
+```
+
+## デフォルトでは Public な Spring Data Repository が全て公開されてしまうため、デフォルト値の設定を変える
+
+- application.properties
+
+application.properties に次の一行を追記します。
+
+```
+spring.data.rest.detection-strategy=ANNOTATED
+```
+
+これを書くことで、@RepositoryRestResource アノテーションが付いていない Repository は公開されなくなります。
+
+## デフォルトでは Repository に対応する全ての HTTP メソッドが生成されてしまうので、元になる JPA メソッドをオーバーライドして@RestResource(exported = false)アノテーションを付ける
+
+- DefaultFalseRepository.java
+
+ここでは、元になる JPA メソッドをオーバーライドして@RestResource(exported = false)アノテーションを付けています。
+
+```java
+@RepositoryRestResource
+@NoRepositoryBean
+public interface DefaultFalseRepository<T, ID extends Serializable> extends Repository<T, ID> {
+    @RestResource(exported = false)
+    List<T> findAll();
+
+    @RestResource(exported = false)
+    Page<T> findAll(Pageable pageable);
+
+    @RestResource(exported = false)
+    List<T> findAll(Sort sort);
+
+    @RestResource(exported = false)
+    T findById(ID id);
+
+    @RestResource(exported = false)
+    <S extends T> S save(S entity);
+
+    @RestResource(exported = false)
+    void deleteById(ID id);
+}
+```
+
+- AppUserRepository.java
+
+各 Repository で DefaultFalseRepository を継承します。
+公開したい JPA メソッドは、DefaultFalseRepository のメソッドをオーバーライドして、@RestResource(exported = true)に上書きします。
+
+```java
+@RepositoryRestResource
+public interface AppUserRepository extends DefaultFalseRepository<AppUser, String> {
+    @Override
+    @RestResource(exported = true)
+    Page<AppUser> findAll(Pageable pageable);
+
+    public List<AppUser> findByCompanyCode(String companyCode);
+
+    @Query("SELECT user FROM AppUser user WHERE user.age > :age")
+    public List<AppUser> findOlderThan(Integer age);
+}
+```
+
+これにより、自分で明示的に追加したメソッドのみが公開されます。
+
+![alt text](image-5.png)
+
+## "\_embedded"内の"\_links"をなくす設定
+
+"\_embedded"内の"\_links"を消したい場合、次の設定を追加します。
+
+- RepresentationModelProcessorConfiguration.java
+
+```java
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.RepresentationModelProcessor;
+
+@Configuration
+public class RepresentationModelProcessorConfiguration {
+
+    @Bean
+    public RepresentationModelProcessor<EntityModel<Object>> estEstimateProcessor() {
+        return new RepresentationModelProcessor<EntityModel<Object>>() {
+            @Override
+            public EntityModel<Object> process(EntityModel<Object> model) {
+                return EntityModel.of(model.getContent());
+            }
+        };
+    }
+}
+```
+
+# 参考文献
+
+- [公式レファレンス](https://spring.pleiades.io/spring-data/rest/reference/)
+- [Spring Data REST の要点と利用方法](https://qiita.com/umiushi_1/items/b369f659bbd94576b8f4#spring-data-rest%E3%81%A8%E3%81%AF)
+- [GraphQL サーバと REST サーバをさっと立ちあげて、実際に触ってみる](https://qiita.com/masatomix/items/53003a34d413206bb619)
+- [GraphQL サーバと REST サーバをさっと立ちあげて、実際に触ってみる。つづき。関連のあるデータの取得](https://qiita.com/masatomix/items/d52ef0bdeb131f9dd6f7)
