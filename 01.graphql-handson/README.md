@@ -103,7 +103,7 @@ pnpm dev
 
 では、このhelloというクエリはどのように実装されているのでしょうか。
 
-`src/index.ts`を見ると、`typeDefs`、`resolvers`という二つのオブジェクトをimportしてServerを定義していることがわかります。
+`app/server/src/index.ts`を見ると、`typeDefs`、`resolvers`という二つのオブジェクトをimportしてServerを定義していることがわかります。
 
 ```ts
 import { ApolloServer } from "apollo-server-express";
@@ -113,7 +113,7 @@ const server = new ApolloServer({ typeDefs, resolvers });
 ```
 では、`typeDefs`と`resolvers`というオブジェクトはどのように定義されているでしょうか。
 
-`src/graphql.ts`を開いてください。以下のようになっています。
+`app/server/src/graphql.ts`を開いてください。以下のようになっています。
 
 
 ```ts
@@ -160,7 +160,7 @@ type User {
 }
 ```
 
-`Query`という型は特別な型で、IFを表します。`src/graphql.ts`を見てみましょう。
+`Query`という型は特別な型で、IFを表します。`app/server/src/graphql.ts`を見てみましょう。
 
 ```ts
 import { gql } from "apollo-server-express";
@@ -265,7 +265,7 @@ export const resolvers = {
 };
 ```
 
-実際に`src/graphql.ts`の内容を書き換えてリクエストしてみましょう。
+実際に`app/server/src/graphql.ts`の内容を書き換えてリクエストしてみましょう。
 リクエストでも同じように`(<パラメータ名>: <パラメータの型>)`の形で、パラメータを指定します。
 
 リクエスト
