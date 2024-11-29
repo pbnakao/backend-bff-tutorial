@@ -17,7 +17,7 @@ type City {
   """市区町村ID"""
   id: String!
 
-  """市区町村ID"""
+  """市区町村名"""
   name: String!
 
   """住民"""

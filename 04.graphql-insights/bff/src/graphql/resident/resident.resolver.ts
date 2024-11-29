@@ -20,9 +20,6 @@ export class ResidentResolver {
      */
     private isAuthorized(userId?: string) {
         // userIdが'admin'の場合は、機密情報を閲覧できる
-        if (userId && userId === 'admin') {
-            return true;
-        }
-        return false;
+        return userId === 'admin';
     }
 }
