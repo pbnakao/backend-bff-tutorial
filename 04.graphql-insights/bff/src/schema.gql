@@ -3,20 +3,35 @@
 # ------------------------------------------------------
 
 type Resident {
+  """住民ID"""
   id: String!
+
+  """住民名"""
   name: String!
-  sensitiveData: String!
+
+  """機密情報"""
+  sensitiveData: String
 }
 
 type City {
+  """市区町村ID"""
   id: String!
+
+  """市区町村ID"""
   name: String!
+
+  """住民"""
   residents: [Resident!]!
 }
 
 type Prefecture {
+  """都道府県ID"""
   id: String!
+
+  """都道府県名"""
   name: String!
+
+  """市区町村"""
   cities: [City!]!
 }
 

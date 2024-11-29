@@ -4,13 +4,17 @@ import { Resident } from './models/resident.model';
 @Resolver(() => Resident)
 export class ResidentResolver {
     @ResolveField(() => String)
-    public id(@Parent() parent): string {
-        return parent.residentId;
+    public id(@Parent() parent: Map<string, Resident>): string {
+        const resident = parent[1];
+        const { id } = resident;
+        return id;
     }
 
     @ResolveField(() => String)
-    public name(@Parent() parent): string {
-        return parent.residentName;
+    public name(@Parent() parent: Map<string, Resident>): string {
+        const resident = parent[1];
+        const { name } = resident;
+        return name;
     }
 
     @ResolveField(() => String)
