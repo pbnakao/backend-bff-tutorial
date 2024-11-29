@@ -1,4 +1,4 @@
-import { Args, Query, Resolver } from '@nestjs/graphql';
+import { Args, Context, Query, Resolver } from '@nestjs/graphql';
 import { Prefecture } from '../prefecture/models/prefecture.model';
 import { PrefecturesArgs } from './models/prefectures.args';
 import { EntityModelResident } from './models/entityModelResident';
@@ -7,7 +7,10 @@ import { map, Observable, of } from 'rxjs';
 @Resolver(() => [Prefecture])
 export class PrefecturesResolver {
     @Query(() => [Prefecture])
-    public prefectures(@Args() args: PrefecturesArgs): Observable<Prefecture[]> {
+    public prefectures(@Args() args: PrefecturesArgs, @Context() context: any): Observable<Prefecture[]> {
+        // ContextにユーザーIDをセット
+        context.userId = args.userId;
+
         return this.fetchMockData().pipe(
             map((residents) => {
                 // 都道府県単位でデータをグループ化
@@ -45,6 +48,7 @@ export class PrefecturesResolver {
                 cityName: "Shinjuku",
                 prefectureId: "p001",
                 prefectureName: "Tokyo",
+                sensitiveData: "xxxxxx"
             },
             {
                 residentId: "r002",
@@ -53,6 +57,7 @@ export class PrefecturesResolver {
                 cityName: "Shinjuku",
                 prefectureId: "p001",
                 prefectureName: "Tokyo",
+                sensitiveData: "yyyyyy"
             },
             {
                 residentId: "r003",
@@ -61,6 +66,7 @@ export class PrefecturesResolver {
                 cityName: "Shibuya",
                 prefectureId: "p001",
                 prefectureName: "Tokyo",
+                sensitiveData: "zzzzzz"
             },
             {
                 residentId: "r004",
@@ -69,6 +75,7 @@ export class PrefecturesResolver {
                 cityName: "Umeda",
                 prefectureId: "p002",
                 prefectureName: "Osaka",
+                sensitiveData: null
             }
         ]);
     }
