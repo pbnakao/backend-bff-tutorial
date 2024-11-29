@@ -2,20 +2,39 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type User {
+type Resident {
+  """住民ID"""
   id: String!
+
+  """住民名"""
   name: String!
-  company: Company!
+
+  """機密情報"""
+  sensitiveData: String
 }
 
-type Company {
+type City {
+  """市区町村ID"""
   id: String!
+
+  """市区町村名"""
   name: String!
-  users: [User!]!
+
+  """住民"""
+  residents: [Resident!]!
+}
+
+type Prefecture {
+  """都道府県ID"""
+  id: String!
+
+  """都道府県名"""
+  name: String!
+
+  """市区町村"""
+  cities: [City!]!
 }
 
 type Query {
-  companies(page: Int, size: Int, sort: [String!]): [Company!]!
-  users(page: Int, size: Int, sort: [String!]): [User!]!
-  findUserById(id: String!): User
+  prefectures(userId: String): [Prefecture!]!
 }
