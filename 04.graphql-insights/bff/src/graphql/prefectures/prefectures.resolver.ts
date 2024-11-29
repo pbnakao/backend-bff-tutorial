@@ -7,10 +7,11 @@ import { map, Observable, of } from 'rxjs';
 @Resolver(() => [Prefecture])
 export class PrefecturesResolver {
     @Query(() => [Prefecture])
-    public prefectures(@Args() args: PrefecturesArgs) {
+    public prefectures(@Args() args: PrefecturesArgs): Observable<Prefecture[]> {
         return this.fetchMockData().pipe(
             map((residents) => {
                 // 都道府県単位でデータをグループ化
+                // key: prefectureId, value: PrefectureのMapを作成
                 const prefectureMap = new Map<string, Prefecture>();
 
                 residents.forEach((resident) => {
@@ -26,7 +27,7 @@ export class PrefecturesResolver {
                     }
                 })
 
-                return prefectureMap;
+                return Array.from(prefectureMap.values());
             })
         );
     }

@@ -4,24 +4,12 @@ import { City } from '../city/models/city.model';
 
 @Resolver(() => Prefecture)
 export class PrefectureResolver {
-    @ResolveField(() => String)
-    public id(@Parent() parent: Map<string, Prefecture>): string {
-        const prefecture = parent[1];
-        const { id } = prefecture;
-        return id;
-    }
-
-    @ResolveField(() => String)
-    public name(@Parent() parent: Map<string, Prefecture>): string {
-        const prefecture = parent[1];
-        const { name } = prefecture;
-        return name;
-    }
-
     @ResolveField(() => [City])
-    public cities(@Parent() parent: Map<string, Prefecture>) {
-        const prefecture = parent[1];
-        const { cities } = prefecture;
+    public cities(@Parent() parent: Prefecture): City[] {
+        const cities = parent.cities;
+
+        // 市区町村単位でデータをグループ化
+        // key: cityId, value: CityのMapを作成
         const cityMap = new Map<string, City>();
 
         cities.forEach((city) => {
@@ -37,6 +25,6 @@ export class PrefectureResolver {
             }
         })
 
-        return cityMap;
+        return Array.from(cityMap.values());
     }
 }

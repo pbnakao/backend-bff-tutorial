@@ -4,24 +4,12 @@ import { Resident } from '../resident/models/resident.model';
 
 @Resolver(() => City)
 export class CityResolver {
-    @ResolveField(() => String)
-    public id(@Parent() parent: Map<string, City>): string {
-        const city = parent[1];
-        const { id } = city;
-        return id;
-    }
-
-    @ResolveField(() => String)
-    public name(@Parent() parent: Map<string, City>): string {
-        const city = parent[1];
-        const { name } = city;
-        return name;
-    }
-
     @ResolveField(() => [Resident])
-    public residents(@Parent() parent: Map<string, City>) {
-        const city = parent[1];
-        const { residents } = city;
+    public residents(@Parent() parent: City): Resident[] {
+        const residents = parent.residents
+
+        // 住民単位でデータをグループ化
+        // key: residentId, value: ResidentのMapを作成
         const residentMap = new Map<string, Resident>();
 
         residents.forEach((resident) => {
@@ -36,6 +24,6 @@ export class CityResolver {
             }
         })
 
-        return residentMap;
+        return Array.from(residentMap.values());
     }
 }
