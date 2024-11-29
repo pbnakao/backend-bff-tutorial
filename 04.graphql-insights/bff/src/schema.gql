@@ -14,8 +14,27 @@ type Company {
   users: [User!]!
 }
 
+type Resident {
+  id: String!
+  name: String!
+  sensitiveData: String!
+}
+
+type City {
+  id: String!
+  name: String!
+  residents: [Resident!]!
+}
+
+type Prefecture {
+  id: String!
+  name: String!
+  cities: [City!]!
+}
+
 type Query {
   companies(page: Int, size: Int, sort: [String!]): [Company!]!
   users(page: Int, size: Int, sort: [String!]): [User!]!
   findUserById(id: String!): User
+  prefectures(userId: String): [Prefecture!]!
 }
