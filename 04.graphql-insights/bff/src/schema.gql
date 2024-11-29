@@ -2,18 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type User {
-  id: String!
-  name: String!
-  company: Company!
-}
-
-type Company {
-  id: String!
-  name: String!
-  users: [User!]!
-}
-
 type Resident {
   id: String!
   name: String!
@@ -33,8 +21,5 @@ type Prefecture {
 }
 
 type Query {
-  companies(page: Int, size: Int, sort: [String!]): [Company!]!
-  users(page: Int, size: Int, sort: [String!]): [User!]!
-  findUserById(id: String!): User
   prefectures(userId: String): [Prefecture!]!
 }
