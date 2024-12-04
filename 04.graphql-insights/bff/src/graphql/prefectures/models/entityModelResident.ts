@@ -5,5 +5,4 @@ export interface EntityModelResident {
     cityName: string;
     prefectureId: string;
     prefectureName: string;
-    sensitiveData?: string | null;
 }

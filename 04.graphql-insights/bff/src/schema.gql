@@ -36,5 +36,5 @@ type Prefecture {
 }
 
 type Query {
-  prefectures(userId: String): [Prefecture!]!
+  prefectures: [Prefecture!]!
 }

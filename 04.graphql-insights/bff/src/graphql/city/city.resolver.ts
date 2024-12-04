@@ -20,7 +20,6 @@ export class CityResolver {
                 residentMap.set(residentId, {
                     id: residentId,
                     name: resident.residentName,
-                    sensitiveData: resident.sensitiveData
                 });
             }
         })
