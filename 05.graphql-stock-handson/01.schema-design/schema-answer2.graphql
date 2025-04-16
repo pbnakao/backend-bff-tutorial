@@ -1,0 +1,38 @@
+type Query {
+  stocks: [Stock!]!
+  supplier(id: ID!): Supplier
+  purchaseInfo(id: ID!): PurchaseInfo
+}
+
+type Stock {
+  id: ID!
+  name: String!
+  modelYear: Int!
+  price: Int!
+  mileage: Int
+  client: Client!
+  photos: [Photo!]!
+  purchaseInfo: PurchaseInfo
+}
+
+type Client {
+  id: ID!
+  name: String!
+  address: String
+}
+
+type Photo {
+  id: ID!
+  url: String!
+  isMain: Boolean!
+}
+
+type PurchaseInfo {
+  purchaseDate: String!
+  supplier: Supplier!
+}
+
+type Supplier {
+  name: String!
+  phone: String!
+}
