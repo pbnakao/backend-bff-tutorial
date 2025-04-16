@@ -17,9 +17,67 @@
 
 ## ✅ 事前準備
 
+このハンズオンでは、以下の環境構築が済んでいることを前提とします。
+
+### 📦 必要なツール
+
 - Node.js（推奨: `v18` 以上）
-- pnpm（`npm i -g pnpm`）
+- pnpm（`npm install -g pnpm`）
 - VSCode（推奨）
+- Windows ユーザーの場合は **WSL + Ubuntu**
+
+---
+
+## 🧑‍💻 環境構築ステップ（Windows + WSL 編）
+
+### 1. WSL のインストール（Windows ユーザーのみ）
+
+PowerShell（管理者権限）で以下を実行：
+
+```sh
+wsl --install
+```
+
+✅ 再起動が求められます
+🔗 参考: https://learn.microsoft.com/ja-jp/windows/wsl/install
+
+---
+
+### 2. Ubuntu のインストール
+
+以下から Ubuntu（22.04 または 24.04）をインストール：
+👉 https://apps.microsoft.com/detail/9nz3klhxdjp5?hl=ja-jp&gl=JP
+
+---
+
+### 3. Ubuntu 初期設定
+
+アプリ起動後、任意のユーザー名とパスワードを設定
+
+---
+
+### 4. VSCode 連携の確認
+
+Ubuntu ターミナルで以下を実行し、VSCode が開くことを確認：
+
+```sh
+code .
+```
+
+---
+
+### 5. nvm のインストール（Node.js バージョン管理）
+
+以下のスクリプトで nvm をインストール：
+
+```sh
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.bashrc
+nvm help
+```
+
+nvm help が表示されれば OK
+必要に応じて nvm install 18 && nvm use 18 で Node.js をインストール
 
 ---
 
