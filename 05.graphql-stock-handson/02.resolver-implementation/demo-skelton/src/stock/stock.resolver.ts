@@ -12,9 +12,6 @@ import { PhotoService } from '../photo/photo.service';
 import { Client } from '../client/client.model';
 import { Photo } from '../photo/photo.model';
 import { ClientRecord, PhotoRecord, StockRecord } from '../mock-data';
-import { Logger } from '@nestjs/common';
-
-const log = new Logger('StockResolver');
 
 @Resolver(() => Stock)
 export class StockResolver {
@@ -29,26 +26,23 @@ export class StockResolver {
     stocks(
         @Args('clientId', { nullable: true }) clientId?: string,
     ): StockRecord[] {
-        return this.stockSvc.findByClient(clientId);
+        // TODO: StockService を呼び出して一覧を返す
+        return [] as any;
     }
 
     /** Stock.client の解決 */
     @ResolveField(() => Client)
     client(@Parent() stock: Stock): ClientRecord {
-        log.verbose(`Fetch Client for stockId=${stock.id} (clientId=${stock.clientId})`);
-        return this.clientSvc.findById(stock.clientId);
+        // TODO: stock.clientId を使って Client を取得
+        return {} as any;
     }
 
     /** Stock.photos の解決 */
     @ResolveField(() => [Photo])
     photos(@Parent() stock: Stock): PhotoRecord[] {
-        log.verbose(`Fetch Photos for stockId=${stock.id}`);
-        return this.photoSvc.findByStock(stock.id);
+        // TODO: stock.id を使って Photo 一覧を取得
+        return [] as any;
     }
 
-    /** Stock.priceWithTax の解決 */
-    @ResolveField(() => Number)
-    priceWithTax(@Parent() stock: Stock): number {
-        return Math.round(stock.price * 1.1);
-    }
+    // TODO: その他必要なField Resolverを定義する
 }

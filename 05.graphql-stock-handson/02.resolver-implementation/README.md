@@ -36,7 +36,6 @@ GraphQL では、スキーマ設計と同じくらい **Resolver の責務分離
 > さらに臨場感を出すため、次の **追加フィールド** も Field Resolver で実装します。
 >
 > - `Stock.priceWithTax`（税込計算）
-> - `Stock.mainPhoto`（メイン写真抽出）
 > - `Client.displayName`（都道府県付き名称）
 > - `Photo.thumbnailUrl`（CDN サムネイル URL 生成）
 
@@ -44,9 +43,25 @@ GraphQL では、スキーマ設計と同じくらい **Resolver の責務分離
 
 ### Step&nbsp;3. 実装演習
 
-1. `demo-skeleton/stock.resolver.ts` の **`TODO:`** を埋める
-2. 起動してクエリが通るか確認
-3. `demo-answer/stock.resolver.ts` と比較して学びを深める
+以下の Resolver ファイルの **`TODO:`** を埋めて、それぞれのデータ取得責務を体験してみましょう。
+
+| ファイルパス                       | 対象 Resolver                                         | 内容                                      |
+| ---------------------------------- | ----------------------------------------------------- | ----------------------------------------- |
+| `demo-skeleton/stock.resolver.ts`  | `Query.stocks`, `Stock.client`, `Stock.photos`        | 在庫に関する基本のネスト解決を実装        |
+| `demo-skeleton/client.resolver.ts` | `Query.client`, `Query.clients`, `Client.displayName` | 販売店情報の取得と表記加工を実装          |
+| `demo-skeleton/photo.resolver.ts`  | `Query.photosByStock`, `Photo.thumbnailUrl`           | 写真一覧の取得とサムネイル URL 生成を実装 |
+
+---
+
+#### ✅ 実装手順
+
+1. 各 `demo-skeleton/*.resolver.ts` の `TODO:` を埋めて実装
+2. `pnpm run start` でアプリを起動し、GraphQL クエリが正しく返るか確認
+3. `demo-answer/*.resolver.ts` を見て自分の実装と比較し、
+   - `Query` と `Field` の使い分け
+   - ロジックの置き所（サービスか Resolver か）
+   - ネスト構造の解決方法
+     を振り返ってみましょう
 
 ---
 
@@ -74,7 +89,7 @@ client(@Parent() stock: Stock) {
 # 依存インストール
 pnpm install
 
-# reflect-metadata & ts-node を先読みして起動
+# アプリ起動
 pnpm run start
 # => http://localhost:3000/graphql が立ち上がる
 ```
@@ -85,17 +100,23 @@ pnpm run start
 
 ```graphql
 query {
-  stocks(clientId: "c001") {
+  stocks {
     id
     name
-    price
-    priceWithTax # 追加フィールド
-    mainPhoto {
-      # 追加フィールド
-      thumbnailUrl
-    }
+    modelYear
+    price # 税抜
+    priceWithTax # 追加フィールド：税込
+    mileage
+    clientId
     client {
-      displayName # 追加フィールド
+      id
+      displayName # 追加フィールド：都道府県付き名称
+    }
+    photos {
+      id
+      url
+      isMain
+      thumbnailUrl
     }
   }
 }
