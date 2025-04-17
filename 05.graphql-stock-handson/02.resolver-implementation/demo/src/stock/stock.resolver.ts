@@ -11,8 +11,10 @@ import { ClientService } from '../client/client.service';
 import { PhotoService } from '../photo/photo.service';
 import { Client } from '../client/client.model';
 import { Photo } from '../photo/photo.model';
-import { ClientRecord, PhotoRecord, StockRecord } from '../mock-data';
+import { ClientRecord, PhotoRecord, PurchaseInfoRecord, purchaseInfos, StockRecord } from '../mock-data';
 import { Logger } from '@nestjs/common';
+import { PurchaseInfo } from '../purchase-info/purchase-info.model';
+import { PurchaseInfoService } from '../purchase-info/purchase-info.service';
 
 const log = new Logger('StockResolver');
 
@@ -22,6 +24,7 @@ export class StockResolver {
         private readonly stockSvc: StockService,
         private readonly clientSvc: ClientService,
         private readonly photoSvc: PhotoService,
+        private readonly purchaseInfoSvc: PurchaseInfoService,
     ) { }
 
     /** 在庫一覧を取得（clientId で絞り込み可能） */
@@ -44,6 +47,13 @@ export class StockResolver {
     photos(@Parent() stock: Stock): PhotoRecord[] {
         log.verbose(`Fetch Photos for stockId=${stock.id}`);
         return this.photoSvc.findByStock(stock.id);
+    }
+
+    /** Stock.purchaseInfo の解決 */
+    @ResolveField(() => PurchaseInfo, { nullable: true })
+    purchaseInfo(@Parent() stock: Stock): PurchaseInfoRecord | undefined {
+        log.verbose(`Fetch PurchaseInfo for stockId=${stock.id}`);
+        return this.purchaseInfoSvc.findByStock(stock.id);
     }
 
     /** Stock.priceWithTax の解決 */
