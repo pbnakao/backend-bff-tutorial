@@ -1,0 +1,25 @@
+{
+  "name": "graphql-stock-demo",
+  "version": "1.0.0",
+  "dependencies": {
+    "@nestjs/apollo": "^10",
+    "@nestjs/common": "^10.4.17",
+    "@nestjs/core": "^10.4.17",
+    "@nestjs/graphql": "^10",
+    "@nestjs/platform-express": "^10.4.17",
+    "apollo-server-core": "^3.13.0",
+    "apollo-server-express": "^3.13.0",
+    "dataloader": "^2.2.3",
+    "graphql": "^16.10.0",
+    "reflect-metadata": "^0.1.14",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.30",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "start": "node -r reflect-metadata -r ts-node/register src/main.ts"
+  }
+}

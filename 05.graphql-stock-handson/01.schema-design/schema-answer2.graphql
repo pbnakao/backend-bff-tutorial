@@ -12,7 +12,7 @@ type Stock {
   mileage: Int
   client: Client!
   photos: [Photo!]!
-  purchaseInfo: PurchaseInfo
+  purchaseInfo: PurchaseInfo!
 }
 
 type Client {

@@ -10,7 +10,7 @@ GraphQL の Field Resolver は、ネストされたデータ構造を動的に�
 
 - N+1 問題がなぜ起きるかを理解する
 - DataLoader を使ってリクエスト単位にバッチ処理する仕組みを理解する
-- NestJS における `@Injectable({ scope: Scope.REQUEST })` を使った本番想定の DataLoader 実装を習得する
+- NestJS における本番想定の DataLoader 実装を習得する
 - DataLoader と `JOIN` 系取得との違い・使い分けを理解する
 
 ---
@@ -42,26 +42,75 @@ query {
 
 ## 🧪 DataLoader による解決
 
-DataLoader を使えば、同じリクエスト内で発生した `.load(clientId)` をすべてまとめて、**一括で取得**できます。
-ただし、その効果を最大化するには、**サービス層が「複数 ID をまとめて処理できる」構造になっている必要があります。**
+この N+1 問題を解決するためのユーティリティが **DataLoader** です。
+DataLoader を使うと、**同じ GraphQL リクエスト内で複数回呼び出される ID 取得処理を、自動的に 1 回にまとめる**ことができます。
+
+例えば、Field Resolver 内で「Client を取得したい」とします。このとき、以下のように DataLoader を経由して取得します：
 
 ```ts
-// DataLoader の仕組み（WHERE IN 相当の一括取得）
+clientLoader.loader.load(stock.clientId);
+```
+
+この .load() がリクエスト中に複数回呼ばれた場合でも、DataLoader は内部的に次のように動きます：
+
+```ts
+// 自動的にまとめられる仕組み（batchFn）
 const clientLoader = new DataLoader(async (ids: string[]) => {
   // clientService.findByIds(ids) は WHERE id IN (...) に相当
   return this.clientService.findByIds(ids);
 });
 ```
 
-→ たとえ 10 件の Stock に対して Client を参照していたとしても、
-→ **内部では 1 回の「WHERE IN」クエリでまとめて取得される（N+1 → 1+1）**
+✅ 10 件の Stock に対して 10 件の Client を取得していたとしても、 → .load() の呼び出しは 1 回の batchFn() でまとめて処理され、合計 1+1 回の取得で済みます。
 
 このように、
 
 - 「Field Resolver で .load(id) を書く」
 - 「Loader 側で .findByIds(ids: string[]) にまとめる」
 - 「Repository / DB では WHERE id IN (...) で取得する」
-  という三段構成が、DataLoader の真の効果を発揮するポイントです。
+  という三段構成が、DataLoader の効果を発揮するポイントです。
+
+---
+
+## 📘 DataLoader の基本 API 解説
+
+DataLoader は、同じ GraphQL リクエスト内で複数回呼ばれる `.load(key)` を自動でまとめて（バッチ処理して）、1 回の取得に最適化できるユーティリティクラスです。
+
+```ts
+new DataLoader<Key, Value>(batchFn: (keys: readonly Key[]) => Promise<Value[]>)
+```
+
+### 🔍 主な関数群と使い方
+
+| 関数名               | 概要                          | 典型的な使い方                      | 説明                                                                               |
+| -------------------- | ----------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------- |
+| `.load(key)`         | 単一のキーに対する取得を要求  | `loader.load('c001')`               | 複数回呼ばれても、同一リクエスト内で自動的にまとめて `batchFn([...])` に渡されます |
+| `.loadMany(keys)`    | 複数のキーを一括で取得        | `loader.loadMany(['c001', 'c002'])` | `.load()` を複数回呼ぶのと同じ。バッチ処理される                                   |
+| `.clear(key)`        | 特定の key のキャッシュを削除 | `loader.clear('c001')`              | フィールドの再取得が必要なときに使用                                               |
+| `.clearAll()`        | 全キャッシュを削除            | `loader.clearAll()`                 | 同一リクエスト内のすべてのキャッシュをリセット                                     |
+| `.prime(key, value)` | 手動でキャッシュを事前登録    | `loader.prime('c001', clientObj)`   | 外部で取得済みの値をキャッシュに入れるときに使う                                   |
+
+### 📎 注意点
+
+- `.load()` や `.loadMany()` は非同期関数です。必ず `await` する必要があります。
+- `batchFn()` の戻り値は、**keys と同じ順序**でなければいけません。
+- 未解決のキーには `undefined` または `null` を返してください。
+
+## ✅ 基本的に使うのは `.load()` と `batchFn()` のペア
+
+ほとんどのユースケースでは、次の 2 つだけを理解していれば十分です：
+
+| 使うもの     | 用途                                                 |
+| ------------ | ---------------------------------------------------- |
+| `.load(key)` | フィールドごとに 1 件ずつ取得要求                    |
+| `batchFn()`  | `.load()` が貯まったタイミングで一括取得（自動実行） |
+
+つまり、
+
+- `.load()` を **Resolver から呼び出す**
+- `batchFn()` を **Loader クラス内で定義する**
+
+このペアで DataLoader の基本的な仕組みは成り立ちます。
 
 ---
 
@@ -89,7 +138,7 @@ GraphQL における DataLoader の基本的な使い方としては、`context.
 export class ClientLoader {
   constructor(private readonly clientService: ClientService) {}
 
-  readonly loader = new DataLoader<string, Client>(async (ids) => {
+  readonly loader = new DataLoader<string, ClientRecord>(async (ids) => {
     return this.clientService.findByIds(ids);
   });
 }
@@ -159,19 +208,67 @@ export class StockResolver {
 
 ---
 
-## 🔧 実装演習：ClientLoader / PhotoLoader の導入
+## 🧾 ログ出力によるバッチ処理の確認
 
-この章では、下記の Field Resolver を DataLoader 化してください：
+DataLoader を導入すると、複数の `.load()` 呼び出しが **まとめて `batchFn()` に集約される様子**をログで確認できます。
 
-- `Stock.client` → `ClientLoader`
-- `Stock.photos` → `PhotoLoader`
+### ✅ 仕込み例（`StockResolver`）
 
-### 実装ステップ
+```ts
+@ResolveField(() => Client)
+async client(@Parent() stock: Stock): Promise<ClientRecord> {
+    log.verbose(`Requesting Client ${stock.clientId} for Stock ${stock.id}`);
+    const client = await this.clientLoader.loader.load(stock.clientId);
+    return client;
+}
+```
 
-1. `client.loader.ts` と `photo.loader.ts` を作成し、`@Injectable({ scope: Scope.REQUEST })` で定義
-2. Resolver 側で `clientLoader.loader.load()` を使ってバッチ化
-3. コンソールログで `.load()` のバッチ挙動を確認（例：1 回の取得で複数件処理）
-4. クエリ結果が正しく返ることを確認
+### ✅ 仕込み例（`ClientLoader`）
+
+```ts
+readonly loader = new DataLoader<string, ClientRecord>(async (ids) => {
+  this.logger.verbose(`🔄 batchFn called with ids: [${ids.join(', ')}]`);
+  const clients = this.clientService.findByIds(ids);
+  return ids.map((id) => clients.find((c) => c.id === id));
+});
+```
+
+### 🖨️ 実際のログ出力（例）
+
+以下は、GraphQL の 1 リクエスト内で Stock.client を 3 件解決したときのログです：
+
+```
+[Nest] 15758  - 04/18/2025, 12:06:39 PM VERBOSE [StockResolver] Requesting Client c001 for Stock s001
+[Nest] 15758  - 04/18/2025, 12:06:39 PM VERBOSE [StockResolver] Requesting Client c001 for Stock s002
+[Nest] 15758  - 04/18/2025, 12:06:39 PM VERBOSE [StockResolver] Requesting Client c002 for Stock s003
+[Nest] 15758  - 04/18/2025, 12:06:39 PM VERBOSE [ClientLoader] 🔄 batchFn called with ids: [c001, c002]
+[Nest] 15758  - 04/18/2025, 12:06:39 PM VERBOSE [ClientService] 🔍 findByIds called with ids = [c001, c002]
+```
+
+#### 🔍 説明
+
+- .load() は 3 回呼ばれている（Stock.client が 3 件）
+- しかし、ClientLoader の batchFn() は **1 回しか呼ばれていない**
+- ClientService.findByIds() により、**WHERE IN 相当の処理**でまとめて取得されている
+- 結果として、**N+1 回のアクセスが 1+1 に削減**されている
+
+## 🔧 実装演習：DataLoader の導入（photo / purchaseInfo）
+
+この章では、以下の Field Resolver を DataLoader 化して最適化していきます。
+
+| 対象フィールド       | Loader 名            | 説明                                 |
+| -------------------- | -------------------- | ------------------------------------ |
+| `Stock.photos`       | `PhotoLoader`        | 写真（複数件）の取得、N+1 をバッチ化 |
+| `Stock.purchaseInfo` | `PurchaseInfoLoader` | 購入情報（必ず 1 件）の取得を最適化  |
+
+---
+
+### ✅ 実装ステップ
+
+1. `photo.loader.ts` / `purchase-info.loader.ts` を作成し、`@Injectable({ scope: Scope.REQUEST })` で定義
+2. `StockResolver` 側で `.loader.load(stock.id)` を使ってバッチ化
+3. バッチの挙動が確認できるよう `console.log()` or `Logger.verbose()` を追加
+4. クエリ実行結果が正しく返るか検証
 
 ---
 
@@ -190,6 +287,26 @@ query {
       id
       url
     }
+    purchaseInfo {
+      purchaseDate
+      supplier {
+        name
+        phone
+      }
+    }
   }
 }
+```
+
+---
+
+## 📝 サンプルログ（batch 処理の実行確認）
+
+```
+[Nest] 31391  - 04/18/2025, 2:19:49 PM VERBOSE [ClientLoader] 🔄 batchFn called with ids: [c001, c002]
+[Nest] 31391  - 04/18/2025, 2:19:49 PM VERBOSE [ClientService] 🔍 findByIds called with ids = [c001, c002]
+[Nest] 31391  - 04/18/2025, 2:19:49 PM VERBOSE [PhotoLoader] 🔄 batchFn called with stockIds: [s001, s002, s003]
+[Nest] 31391  - 04/18/2025, 2:19:49 PM VERBOSE [PhotoService] 📸 findByStockIds called with stockIds = [s001, s002, s003]
+[Nest] 31391  - 04/18/2025, 2:19:49 PM VERBOSE [PurchaseInfoLoader] 🔄 batchFn called with stockIds: [s001, s002, s003]
+[Nest] 31391  - 04/18/2025, 2:19:49 PM VERBOSE [PurchaseInfoService] 📦 findByStockIds called with stockIds = [s001, s002, s003]
 ```
