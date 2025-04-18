@@ -50,8 +50,8 @@ export class StockResolver {
     }
 
     /** Stock.purchaseInfo の解決 */
-    @ResolveField(() => PurchaseInfo, { nullable: true })
-    purchaseInfo(@Parent() stock: Stock): PurchaseInfoRecord | undefined {
+    @ResolveField(() => PurchaseInfo)
+    purchaseInfo(@Parent() stock: Stock): PurchaseInfoRecord {
         log.verbose(`Fetch PurchaseInfo for stockId=${stock.id}`);
         return this.purchaseInfoSvc.findByStock(stock.id);
     }
