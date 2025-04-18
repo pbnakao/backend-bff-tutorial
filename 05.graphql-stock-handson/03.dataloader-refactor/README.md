@@ -10,7 +10,7 @@ GraphQL の Field Resolver は、ネストされたデータ構造を動的に�
 
 - N+1 問題がなぜ起きるかを理解する
 - DataLoader を使ってリクエスト単位にバッチ処理する仕組みを理解する
-- NestJS における `@Injectable({ scope: Scope.REQUEST })` を使った本番想定の DataLoader 実装を習得する
+- NestJS における本番想定の DataLoader 実装を習得する
 - DataLoader と `JOIN` 系取得との違い・使い分けを理解する
 
 ---
